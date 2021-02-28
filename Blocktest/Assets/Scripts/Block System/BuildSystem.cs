@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
+using Mirror;
 
-public class BuildSystem : MonoBehaviour
+public class BuildSystem : NetworkBehaviour
 {
     /// Tilemap for foreground objects
     [SerializeField] Tilemap foregroundTilemap;
     /// Tilemap for background (non-dense) objects
     [SerializeField] Tilemap backgroundTilemap;
+    [SerializeField] NetworkIdentity networkIdentity;
 
     //
     // Summary:
@@ -21,10 +23,10 @@ public class BuildSystem : MonoBehaviour
     //          The position of the block to destroy (world coords)
     public void BreakBlockWorld(bool foreground, Vector2 position)
     {
-        BreakBlockCell(foreground, foregroundTilemap.WorldToCell(position));
+        CmdBreakBlockCell(foreground, foregroundTilemap.WorldToCell(position));
     }
 
-    public void BreakBlockCell(bool foreground, Vector3Int tilePosition)
+    public void CmdBreakBlockCell(bool foreground, Vector3Int tilePosition)
     {
         if(foreground && foregroundTilemap.HasTile(tilePosition)) {
             foregroundTilemap.SetTile(tilePosition, null);
@@ -45,7 +47,7 @@ public class BuildSystem : MonoBehaviour
     //          The position of the placed block
     public void PlaceBlockWorld(Block toPlace, bool foreground, Vector2 position)
     {
-        PlaceBlockCell(toPlace, foreground, foregroundTilemap.WorldToCell(position));
+        CmdPlaceBlockCell(toPlace, foreground, foregroundTilemap.WorldToCell(position));
     }
 
     //
@@ -58,7 +60,7 @@ public class BuildSystem : MonoBehaviour
     //          Whether or not the block should be placed in the foreground.
     //      position:
     //          The position of the placed block
-    public void PlaceBlockCell(Block toPlace, bool foreground, Vector3Int tilePosition)
+    public void CmdPlaceBlockCell(Block toPlace, bool foreground, Vector3Int tilePosition)
     {
         BlockTile newTile = BlockTile.CreateInstance<BlockTile>();
         newTile.sourceBlock = toPlace;
@@ -74,9 +76,9 @@ public class BuildSystem : MonoBehaviour
         }
     }
 
-    public void PlaceBlockCell(Block toPlace, bool foreground, Vector2 tilePosition)
+    public void CmdPlaceBlockCell(Block toPlace, bool foreground, Vector2 tilePosition)
     {
-        PlaceBlockCell(toPlace, foreground, new Vector3Int(Mathf.RoundToInt(tilePosition.x), Mathf.RoundToInt(tilePosition.y), 0));
+        CmdPlaceBlockCell(toPlace, foreground, new Vector3Int(Mathf.RoundToInt(tilePosition.x), Mathf.RoundToInt(tilePosition.y), 0));
     }
 }
 

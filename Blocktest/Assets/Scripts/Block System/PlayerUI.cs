@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
-public class PlayerUI : MonoBehaviour
+using Mirror;
+
+public class PlayerUI : NetworkBehaviour
 {
 
     /// Reference to main BlockManager script.
@@ -44,11 +46,15 @@ public class PlayerUI : MonoBehaviour
         GameObject BlockSystem = GameObject.Find("BlockSystem");
         buildSystem = BlockSystem.GetComponent<BuildSystem>();
         blockManager = BlockSystem.GetComponent<BlockManager>();
+        foregroundTilemap = GameObject.Find("Foreground").GetComponent<Tilemap>();
+        backgroundTilemap = GameObject.Find("Background").GetComponent<Tilemap>();
         InitializeCursor();
     }
 
     void Update()
     {
+        if(!isLocalPlayer) { return; } // Don't execute if not the linked person
+
         if(Input.GetKeyDown("e"))
         {
             ToggleBuild();
@@ -92,19 +98,19 @@ public class PlayerUI : MonoBehaviour
             }
 
             if (canBuildForeground && Input.GetMouseButton(0)) {
-                PlayerPlaceBlock(currentBlock, true, Camera.main.ScreenToWorldPoint(Input.mousePosition));
+                CmdPlayerPlaceBlock(currentBlock.blockID, true, Camera.main.ScreenToWorldPoint(Input.mousePosition));
             } 
             else if (canBuildBackground && Input.GetMouseButton(1)) {
-                PlayerPlaceBlock(currentBlock, false, Camera.main.ScreenToWorldPoint(Input.mousePosition));
+                CmdPlayerPlaceBlock(currentBlock.blockID, false, Camera.main.ScreenToWorldPoint(Input.mousePosition));
             }
 
         }
         else
         {
             if(Input.GetMouseButton(0)) {
-                PlayerBreakBlock(true, Camera.main.ScreenToWorldPoint(Input.mousePosition));
+                CmdPlayerBreakBlock(true, Camera.main.ScreenToWorldPoint(Input.mousePosition));
             } else if(Input.GetMouseButton(1)) {
-                PlayerBreakBlock(false, Camera.main.ScreenToWorldPoint(Input.mousePosition));
+                CmdPlayerBreakBlock(false, Camera.main.ScreenToWorldPoint(Input.mousePosition));
             }
             
         }
@@ -191,7 +197,7 @@ public class PlayerUI : MonoBehaviour
         slot = Mathf.Clamp(slot, 0, blockManager.allBlocks.Length - 1);
         currentBlockID = slot;
         currentBlock = blockManager.allBlocks[currentBlockID];
-        selectionDropdown.captionText.text = currentBlock.blockName;
+        //selectionDropdown.captionText.text = currentBlock.blockName;
         if(buildMode) {
             currentRenderer.sprite = currentBlock.blockSprite;
         }
@@ -207,8 +213,10 @@ public class PlayerUI : MonoBehaviour
     //          Whether or not the block should be placed in the foreground.
     //      position:
     //          The position of the placed block (world coords)
-    private void PlayerPlaceBlock(Block toPlace, bool foreground, Vector2 position)
+    [Command]
+    private void CmdPlayerPlaceBlock(int blockID, bool foreground, Vector2 position)
     {
+        Block toPlace = blockManager.allBlocks[blockID];
         audioSource.PlayOneShot(toPlace.placeSound);
         buildSystem.PlaceBlockWorld(toPlace, foreground, position);
     }
@@ -221,7 +229,8 @@ public class PlayerUI : MonoBehaviour
     //          Whether or not the block to be destroyed is in the foreground.
     //      position:
     //          The position of the block to destroy (world coords)
-    private void PlayerBreakBlock(bool foreground, Vector2 position)
+    [Command]
+    private void CmdPlayerBreakBlock(bool foreground, Vector2 position)
     {
         buildSystem.BreakBlockWorld(foreground, position);
     }

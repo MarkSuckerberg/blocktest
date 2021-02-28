@@ -4,8 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Mirror;
 
-public class BlockManager : MonoBehaviour {
+public class BlockManager : NetworkBehaviour {
 
     /// Array we expose to inspector / editor, use this instead of the old arrays to define block types.
     [SerializeField] BlockType[] allBlockTypes;
@@ -47,13 +48,12 @@ public class Block
     public Sprite blockSprite;
     /// The sound that is played when the block is placed.
     public AudioClip placeSound;
-
-    public Block(int id, string myName, Sprite mySprite, AudioClip place)
+    public Block(int blockID, string blockName, Sprite blockSprite, AudioClip placeSound)
     {
-        blockID = id;
-        blockName = myName;
-        blockSprite = mySprite;
-        placeSound = place;
+        this.blockID = blockID;
+        this.blockName = blockName;
+        this.blockSprite = blockSprite;
+        this.placeSound = placeSound;
     }
 }
 

@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Mirror;
 
-public class WorldGen : MonoBehaviour
+public class WorldGen : NetworkBehaviour
 {
     [SerializeField] Tilemap foregroundTilemap;
     [SerializeField] Tilemap backgroundTilemap;
@@ -31,9 +32,10 @@ public class WorldGen : MonoBehaviour
     {
         blockManager = GetComponent<BlockManager>();
         buildSystem = GetComponent<BuildSystem>();
-
-        worldSeed = Random.Range(0.0f, 1000000.0f);
-        Generate(255, 255, worldSeed);
+        if(isServer) {
+            worldSeed = Random.Range(0.0f, 1000000.0f);
+            Generate(255, 255, worldSeed);
+        }
     }
 
     public void Generate(int maxX = 255, int maxY = 255, float generatorSeed = 0.0f) 
@@ -69,8 +71,8 @@ public class WorldGen : MonoBehaviour
                     continue;
                 }
 
-                buildSystem.PlaceBlockCell(toPlace, true, new Vector2(xi, yi));
-                buildSystem.PlaceBlockCell(toPlace, false, new Vector2(xi, yi));
+                buildSystem.CmdPlaceBlockCell(toPlace, true, new Vector2(xi, yi));
+                buildSystem.CmdPlaceBlockCell(toPlace, false, new Vector2(xi, yi));
                 //progress += 1.0f / ((float)maxX + (float)maxY); // Add progress to the progress var
             }
         }

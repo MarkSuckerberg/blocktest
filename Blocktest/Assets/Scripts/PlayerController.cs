@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Mirror;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : NetworkBehaviour
 {
     /// Move speed of the player
     [SerializeField] float moveSpeed = 1;
@@ -11,15 +12,22 @@ public class PlayerController : MonoBehaviour
     [SerializeField] LayerMask groundLayer;
     /// Rigidbody component of the player
     private Rigidbody2D playerRB;
-    // Start is called before the first frame update
-    void Start()
-    {
+
+    private void Start() {
         playerRB = GetComponent<Rigidbody2D>();
+    }
+
+    public override void OnStartLocalPlayer()
+    {
+        Camera.main.transform.SetParent(transform);
+        Camera.main.transform.localPosition = new Vector3(0, 0, -10);
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(!isLocalPlayer) { return; } // Don't execute if not the linked person
+
         float horizontalInput = Input.GetAxis("Horizontal");
         if(horizontalInput != 0) 
         {
